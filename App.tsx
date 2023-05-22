@@ -3,7 +3,7 @@ import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 
 import Splash from "./screens/Splash";
-import MainScreenIcon from "./screens/MainScreenIcon";
+import MainScreen from "./screens/MainScreen";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, Text, Pressable, TouchableOpacity } from "react-native";
@@ -29,7 +29,7 @@ const App = () => {
             />
             <Stack.Screen
               name="MainScreen"
-              component={MainScreenIcon}
+              component={MainScreen}
               options={{ headerShown: false }}
             />
           </Stack.Navigator>

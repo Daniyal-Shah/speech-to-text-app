@@ -185,7 +185,6 @@ const styles = StyleSheet.create({
   },
 
   voiceFabIcon: {
-
     width: 88,
     height: 88,
     position: 'absolute',
@@ -232,7 +231,6 @@ const styles = StyleSheet.create({
     top: 77,
     height: 584,
   },
-
 });
 
 export default MainScreen;

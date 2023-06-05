@@ -1,10 +1,11 @@
+/* eslint-disable prettier/prettier */
 /* fonts */
 export const FontFamily = {
-  novaRoundRegular: "Nova Round_regular",
-  nunitoSansLight: "Nunito Sans_light",
-  nunitoSansRegular: "Nunito Sans_regular",
-  sFProTextSemibold: "SF Pro Text_semibold",
-  sFProTextMedium: "SF Pro Text_medium",
+  novaRoundRegular: 'Nova Round_regular',
+  nunitoSansLight: 'Nunito Sans_light',
+  nunitoSansRegular: 'Nunito Sans_regular',
+  sFProTextSemibold: 'SF Pro Text_semibold',
+  sFProTextMedium: 'SF Pro Text_medium',
 };
 /* font sizes */
 export const FontSize = {
@@ -12,7 +13,7 @@ export const FontSize = {
 };
 /* Colors */
 export const Color = {
-  white: "#fff",
+  white: '#fff',
 };
 /* border radiuses */
 export const Border = {

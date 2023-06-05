@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
 import * as React from 'react';
 import {
   View,
@@ -12,8 +15,58 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {Color, Border, FontFamily, FontSize} from '../GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Voice from '@react-native-voice/voice';
+import {TextItemProps} from '../models/ComponentsProps';
+import {getDateFormat} from '../helpers/date';
 
 const MainScreen = () => {
+  const [convertedTexts, setConvertedTexts] = React.useState<TextItemProps[]>(
+    [],
+  );
+  const [isListening, setIsListening] = React.useState(false);
+
+  React.useEffect(() => {
+    // Adding event listeners
+    Voice.onSpeechResults = onSpeechResultsHandler;
+
+    return () => {
+      // Removing event listeners
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const startListening = async () => {
+    try {
+      setIsListening(true);
+      await Voice.start('en-US'); // Language code, e.g., 'en-US', 'en-GB', 'es-ES'
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const stopListening = async () => {
+    try {
+      setIsListening(false);
+      await Voice.stop();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const onSpeechResultsHandler = (e: any) => {
+    let spokenText = '';
+    e.value.map((item: string) => {
+      spokenText = spokenText + ' ' + item;
+    });
+    setConvertedTexts(state => [
+      ...state,
+      {
+        message: spokenText,
+        date: new Date(),
+      },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={[styles.bg, styles.bgPosition]}>
@@ -41,8 +94,20 @@ const MainScreen = () => {
         </View>
       </View>
 
-      <Pressable style={styles.voiceFabIcon}>
-        <Image resizeMode="cover" source={require('../assets/voice-fab.png')} />
+      <Pressable
+        onPress={isListening ? stopListening : startListening}
+        style={styles.voiceFabIcon}>
+        {isListening ? (
+          <Image
+            resizeMode="cover"
+            source={require('../assets/voice-stop-fab.png')}
+          />
+        ) : (
+          <Image
+            resizeMode="cover"
+            source={require('../assets/voice-fab.png')}
+          />
+        )}
       </Pressable>
 
       <View style={[styles.mainScreenInner, styles.bgPosition]}>
@@ -51,27 +116,32 @@ const MainScreen = () => {
           pagingEnabled={false}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.frameScrollViewContent}>
-          <View style={styles.translatedtextitemLayout}>
+          {convertedTexts.map(item => (
             <View
-              style={[
-                styles.translatedtextitem,
-                styles.translatedtextitemLayout,
-              ]}>
-              <Text style={[styles.helloHopeYouContainer, styles.pmFlexBox]}>
-                Hello, Hope you are doing well,So this is the area where text
-                will be displayed.{' '}
-              </Text>
-              <Image
+              style={styles.translatedtextitemLayout}
+              key={Date.now().toString()}>
+              <View
                 style={[
-                  styles.systemUiconswrite,
-                  styles.systemUiconswritePosition,
-                ]}
-                resizeMode="cover"
-                source={require('../assets/write-icon.png')}
-              />
-              <Text style={[styles.pm, styles.pmFlexBox]}>10:30 AM</Text>
+                  styles.translatedtextitem,
+                  styles.translatedtextitemLayout,
+                ]}>
+                <Text style={[styles.helloHopeYouContainer, styles.pmFlexBox]}>
+                  {item.message}
+                </Text>
+                <Image
+                  style={[
+                    styles.systemUiconswrite,
+                    styles.systemUiconswritePosition,
+                  ]}
+                  resizeMode="cover"
+                  source={require('../assets/write-icon.png')}
+                />
+                <Text style={[styles.pm, styles.pmFlexBox]}>
+                  {getDateFormat(item.date)}
+                </Text>
+              </View>
             </View>
-          </View>
+          ))}
         </ScrollView>
       </View>
     </View>
@@ -97,7 +167,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   brandColorBg1: {
-    backgroundColor: Color.backgroundBrandColor,
     left: '0%',
   },
   brandColorBg: {
@@ -190,6 +259,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 144,
+    marginBottom: 10,
   },
   helloHopeYouContainer: {
     height: '75.39%',
@@ -211,7 +281,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     fontWeight: '300',
     fontFamily: FontFamily.nunitoSansLight,
-    width: 85,
+    marginRight: 10,
     height: 16,
     fontSize: FontSize.size_mini,
   },

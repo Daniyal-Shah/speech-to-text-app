@@ -19,6 +19,16 @@ import Voice from '@react-native-voice/voice';
 import {TextItemProps} from '../models/ComponentsProps';
 import {getDateFormat} from '../helpers/date';
 
+import AudioRecorderPlayer, {
+  AVEncoderAudioQualityIOSType,
+  AVEncodingOption,
+  AudioEncoderAndroidType,
+  AudioSet,
+  AudioSourceAndroidType,
+} from 'react-native-audio-recorder-player';
+
+const audioRecorderPlayer = new AudioRecorderPlayer();
+
 const MainScreen = () => {
   const [convertedTexts, setConvertedTexts] = React.useState<TextItemProps[]>(
     [],
@@ -53,6 +63,32 @@ const MainScreen = () => {
     }
   };
 
+  const onStartRecord = async () => {
+    const path = 'Audio' + Date.now().toString() + '.m4a';
+    const audioSet = {
+      AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
+      AudioSourceAndroid: AudioSourceAndroidType.MIC,
+      AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
+      AVNumberOfChannelsKeyIOS: 2,
+      AVFormatIDKeyIOS: AVEncodingOption.aac,
+    };
+    const uri = await audioRecorderPlayer.startRecorder(path, audioSet);
+    // this.audioRecorderPlayer.addRecordBackListener(e => {
+    //   this.setState({
+    //     recordSecs: e.current_position,
+    //     recordTime: this.audioRecorderPlayer.mmssss(
+    //       Math.floor(e.current_position),
+    //     ),
+    //   });
+    // });
+    console.log(`uri: ${uri}`);
+  };
+
+  const onStopRecord = async () => {
+    const result = await audioRecorderPlayer.stopRecorder();
+    audioRecorderPlayer.removeRecordBackListener();
+    console.log(result);
+  };
   const onSpeechResultsHandler = (e: any) => {
     let spokenText = '';
     e.value.map((item: string) => {
@@ -95,7 +131,7 @@ const MainScreen = () => {
       </View>
 
       <Pressable
-        onPress={isListening ? stopListening : startListening}
+        onPress={isListening ? onStopRecord : onStartRecord}
         style={styles.voiceFabIcon}>
         {isListening ? (
           <Image

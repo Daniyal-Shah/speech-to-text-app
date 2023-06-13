@@ -3,8 +3,8 @@
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Splash from './screens/Splash';
 import MainScreen from './screens/MainScreen';
+import SplashScreen from './screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
 function App() {
@@ -22,8 +22,8 @@ function App() {
           <Stack.Navigator screenOptions={{headerShown: false}}>
             {!hideSplashScreen && (
               <Stack.Screen
-                name="Splash"
-                component={Splash}
+                name="SplashScreen"
+                component={SplashScreen}
                 options={{headerShown: false}}
               />
             )}
@@ -34,7 +34,7 @@ function App() {
             />
           </Stack.Navigator>
         ) : (
-          <Splash />
+          <SplashScreen />
         )}
       </NavigationContainer>
     </>

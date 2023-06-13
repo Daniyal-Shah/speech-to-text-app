@@ -12,7 +12,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import {Color, Border, FontFamily} from '../GlobalStyles';
 
-const Splash = () => {
+const SplashScreen = () => {
   return (
     <View style={styles.splash}>
       <SafeAreaView style={[styles.bg, styles.bgPosition]}>
@@ -165,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Splash;
+export default SplashScreen;

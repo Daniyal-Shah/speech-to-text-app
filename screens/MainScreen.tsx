@@ -11,11 +11,12 @@ import {
   ImageBackground,
   StatusBar,
   Pressable,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {Color, Border, FontFamily, FontSize} from '../GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Voice from '@react-native-voice/voice';
+// import Voice from '@react-native-voice/voice';
 import {TextItemProps} from '../models/ComponentsProps';
 import {getDateFormat} from '../helpers/date';
 
@@ -37,40 +38,44 @@ const MainScreen = () => {
 
   React.useEffect(() => {
     // Adding event listeners
-    Voice.onSpeechResults = onSpeechResultsHandler;
-
-    return () => {
-      // Removing event listeners
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
+    // Voice.onSpeechResults = onSpeechResultsHandler;
+    // return () => {
+    //   // Removing event listeners
+    //   Voice.destroy().then(Voice.removeAllListeners);
+    // };
   }, []);
 
-  const startListening = async () => {
-    try {
-      setIsListening(true);
-      await Voice.start('en-US'); // Language code, e.g., 'en-US', 'en-GB', 'es-ES'
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // const startListening = async () => {
+  //   try {
+  //     setIsListening(true);
+  //     await Voice.start('en-US'); // Language code, e.g., 'en-US', 'en-GB', 'es-ES'
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
 
-  const stopListening = async () => {
-    try {
-      setIsListening(false);
-      await Voice.stop();
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // const stopListening = async () => {
+  //   try {
+  //     setIsListening(false);
+  //     await Voice.stop();
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
 
   const onStartRecord = async () => {
-    const path = 'Audio' + Date.now().toString() + '.m4a';
+    setIsListening(true);
+
+    const path = Platform.select({
+      ios: 'hello.m4a',
+      android: 'sdcard/Audio' + Date.now().toString() + '.mp4', // should give extra dir name in android. Won't grant permission to the first level of dir.
+    });
     const audioSet = {
       AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
       AudioSourceAndroid: AudioSourceAndroidType.MIC,
-      AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
-      AVNumberOfChannelsKeyIOS: 2,
-      AVFormatIDKeyIOS: AVEncodingOption.aac,
+      // AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
+      // AVNumberOfChannelsKeyIOS: 2,
+      // AVFormatIDKeyIOS: AVEncodingOption.aac,
     };
     const uri = await audioRecorderPlayer.startRecorder(path, audioSet);
     // this.audioRecorderPlayer.addRecordBackListener(e => {
@@ -85,6 +90,8 @@ const MainScreen = () => {
   };
 
   const onStopRecord = async () => {
+    setIsListening(false);
+
     const result = await audioRecorderPlayer.stopRecorder();
     audioRecorderPlayer.removeRecordBackListener();
     console.log(result);

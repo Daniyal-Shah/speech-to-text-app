@@ -8,7 +8,7 @@ const router = express.Router();
 const upload = multer();
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API,
+  apiKey: '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',
 });
 
 async function transcribe(buffer) {
@@ -26,17 +26,19 @@ async function transcribe(buffer) {
 }
 
 router.post('/', upload.any('file'), (req, res) => {
-  const audio_file = req.files[0];
-  const buffer = audio_file.buffer;
-  buffer.name = audio_file.originalname;
+  console.log('API POSt');
+  console.log(req.body);
 
-  const response = transcribe(buffer);
+  // const audio_file = req.body.file;
+  // const buffer = audio_file.buffer;
+  // buffer.name = audio_file.originalname;
+
+  const response = transcribe(req.body.file);
 
   response
     .then(data => {
       res.send({
         transcription: data.data.text,
-        audioFileName: buffer.name,
       });
     })
     .catch(err => {

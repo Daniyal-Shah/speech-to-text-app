@@ -12,23 +12,17 @@ import {
   StatusBar,
   Pressable,
   Platform,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {Color, Border, FontFamily, FontSize} from '../GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
-// import Voice from '@react-native-voice/voice';
 import {TextItemProps} from '../models/ComponentsProps';
 import {getDateFormat} from '../helpers/date';
-
-import AudioRecorderPlayer, {
-  AVEncoderAudioQualityIOSType,
-  AVEncodingOption,
-  AudioEncoderAndroidType,
-  AudioSet,
-  AudioSourceAndroidType,
-} from 'react-native-audio-recorder-player';
-
-const audioRecorderPlayer = new AudioRecorderPlayer();
+import SoundRecorder from 'react-native-sound-recorder';
+import * as RNFS from 'react-native-fs';
+import {getTranslationAPI} from '../api/api';
 
 const MainScreen = () => {
   const [convertedTexts, setConvertedTexts] = React.useState<TextItemProps[]>(
@@ -36,79 +30,83 @@ const MainScreen = () => {
   );
   const [isListening, setIsListening] = React.useState(false);
 
-  React.useEffect(() => {
-    // Adding event listeners
-    // Voice.onSpeechResults = onSpeechResultsHandler;
-    // return () => {
-    //   // Removing event listeners
-    //   Voice.destroy().then(Voice.removeAllListeners);
-    // };
-  }, []);
-
-  // const startListening = async () => {
-  //   try {
-  //     setIsListening(true);
-  //     await Voice.start('en-US'); // Language code, e.g., 'en-US', 'en-GB', 'es-ES'
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
-  // const stopListening = async () => {
-  //   try {
-  //     setIsListening(false);
-  //     await Voice.stop();
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
-  const onStartRecord = async () => {
+  console.log(RNFS.DocumentDirectoryPath); //alternative to MainBundleDirectory.
+  const startListening = async () => {
+    Alert.alert('Budh Rehmat', 'Tun wado Tatu aa');
     setIsListening(true);
 
-    const path = Platform.select({
-      ios: 'hello.m4a',
-      android: 'sdcard/Audio' + Date.now().toString() + '.mp4', // should give extra dir name in android. Won't grant permission to the first level of dir.
-    });
-    const audioSet = {
-      AudioEncoderAndroid: AudioEncoderAndroidType.AAC,
-      AudioSourceAndroid: AudioSourceAndroidType.MIC,
-      // AVEncoderAudioQualityKeyIOS: AVEncoderAudioQualityIOSType.high,
-      // AVNumberOfChannelsKeyIOS: 2,
-      // AVFormatIDKeyIOS: AVEncodingOption.aac,
-    };
-    const uri = await audioRecorderPlayer.startRecorder(path, audioSet);
-    // this.audioRecorderPlayer.addRecordBackListener(e => {
-    //   this.setState({
-    //     recordSecs: e.current_position,
-    //     recordTime: this.audioRecorderPlayer.mmssss(
-    //       Math.floor(e.current_position),
-    //     ),
-    //   });
-    // });
-    console.log(`uri: ${uri}`);
+    SoundRecorder.start(SoundRecorder.PATH_CACHE + '/test.mp4').then(
+      function () {
+        console.log('started recording');
+      },
+    );
   };
 
-  const onStopRecord = async () => {
+  const stopListening = async () => {
     setIsListening(false);
 
-    const result = await audioRecorderPlayer.stopRecorder();
-    audioRecorderPlayer.removeRecordBackListener();
-    console.log(result);
-  };
-  const onSpeechResultsHandler = (e: any) => {
-    let spokenText = '';
-    e.value.map((item: string) => {
-      spokenText = spokenText + ' ' + item;
+    SoundRecorder.stop().then(function (result) {
+      console.log('stopped recording, audio file saved at: ' + result.path);
+
+      RNFS.readFile(result.path, 'base64').then(data => {
+        var formData = new FormData();
+
+        let file = Buffer.from(data, 'base64');
+        formData.append('file', file);
+
+        getTranslationAPI(formData);
+      });
     });
-    setConvertedTexts(state => [
-      ...state,
-      {
-        message: spokenText,
-        date: new Date(),
-      },
-    ]);
   };
+
+  const getPermissions = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Permissions for write access',
+            message: 'Give permission to your storage to write a file',
+            buttonPositive: 'ok',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use the storage');
+        } else {
+          console.log('permission denied');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          {
+            title: 'Permissions for write access',
+            message: 'Give permission to your storage to write a file',
+            buttonPositive: 'ok',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use record');
+        } else {
+          console.log('permission denied');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    getPermissions();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -138,7 +136,7 @@ const MainScreen = () => {
       </View>
 
       <Pressable
-        onPress={isListening ? onStopRecord : onStartRecord}
+        onPress={isListening ? stopListening : startListening}
         style={styles.voiceFabIcon}>
         {isListening ? (
           <Image

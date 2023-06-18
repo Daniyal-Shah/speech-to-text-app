@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
+// @ts-ignore
 import * as React from 'react';
 import {
   View,
@@ -22,41 +23,58 @@ import {TextItemProps} from '../models/ComponentsProps';
 import {getDateFormat} from '../helpers/date';
 import SoundRecorder from 'react-native-sound-recorder';
 import * as RNFS from 'react-native-fs';
+import DocumentPicker from 'react-native-document-picker';
+import axios from 'axios';
 import {getTranslationAPI} from '../api/api';
 
 const MainScreen = () => {
   const [convertedTexts, setConvertedTexts] = React.useState<TextItemProps[]>(
     [],
   );
+  const [file, setFile] = React.useState(null);
   const [isListening, setIsListening] = React.useState(false);
 
-  console.log(RNFS.DocumentDirectoryPath); //alternative to MainBundleDirectory.
   const startListening = async () => {
-    Alert.alert('Budh Rehmat', 'Tun wado Tatu aa');
     setIsListening(true);
 
-    SoundRecorder.start(SoundRecorder.PATH_CACHE + '/test.mp4').then(
+    SoundRecorder.start(RNFS.DownloadDirectoryPath + '/test.mp3').then(
       function () {
         console.log('started recording');
       },
     );
   };
-
   const stopListening = async () => {
     setIsListening(false);
 
-    SoundRecorder.stop().then(function (result) {
+    SoundRecorder.stop().then(async function (result) {
       console.log('stopped recording, audio file saved at: ' + result.path);
 
-      RNFS.readFile(result.path, 'base64').then(data => {
-        var formData = new FormData();
-
-        let file = Buffer.from(data, 'base64');
-        formData.append('file', file);
-
-        getTranslationAPI(formData);
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.audio],
+        allowMultiSelection: false,
       });
+
+      const data = await getTranslationAPI(res);
+      console.log(data);
+
+      // RNFS.readFile(result.path, 'base64').then(data => {
+      //   const binaryData = Buffer.from(data, 'base64');
+      //   const form = new FormData();
+      //   form.append('file', file);
+      // });
     });
+  };
+
+  const listFilesInDirectory = async () => {
+    const directoryPath = RNFS.DocumentDirectoryPath; // Replace with the path to your desired directory
+    try {
+      const files = await RNFS.readDir(directoryPath);
+      files.forEach(file => {
+        console.log(file.name);
+      });
+    } catch (error) {
+      console.log('Error:', error);
+    }
   };
 
   const getPermissions = async () => {
@@ -102,10 +120,33 @@ const MainScreen = () => {
         return;
       }
     }
+
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: 'Permissions for read access',
+            message: 'Give permission to your storage to read a file',
+            buttonPositive: 'ok',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use record');
+        } else {
+          console.log('permission denied');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
   };
 
   React.useEffect(() => {
     getPermissions();
+    // listFilesInDirectory();
   }, []);
 
   return (
@@ -134,7 +175,6 @@ const MainScreen = () => {
           </View>
         </View>
       </View>
-
       <Pressable
         onPress={isListening ? stopListening : startListening}
         style={styles.voiceFabIcon}>

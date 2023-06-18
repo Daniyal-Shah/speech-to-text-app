@@ -8,32 +8,38 @@ const router = express.Router();
 const upload = multer();
 
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 async function transcribe(buffer) {
   const openai = new OpenAIApi(configuration);
 
-  const response = await openai.createTranscription(
-    buffer, // The audio file to transcribe.
-    'whisper-1', // The model to use for transcription.
-    undefined, // The prompt to use for transcription.
-    'json', // The format of the transcription.
-    1, // Temperature
-    'en', // Language
-  );
-  return response;
+  try {
+    const response = await openai.createTranscription(
+      buffer, // The audio file to transcribe.
+      'whisper-1', // The model to use for transcription.
+      undefined, // The prompt to use for transcription.
+      'json', // The format of the transcription.
+      1, // Temperature
+      'en', // Language
+    );
+    console.log(response.data);
+    return response;
+  } catch (error) {
+    console.log('error in transcription===>');
+    console.log(error.response.data);
+    return error?.response?.data;
+  }
 }
 
 router.post('/', upload.any('file'), (req, res) => {
-  console.log('API POSt');
-  console.log(req.body);
+  console.log('POST OPENAI==>', req.body);
 
-  // const audio_file = req.body.file;
-  // const buffer = audio_file.buffer;
-  // buffer.name = audio_file.originalname;
+  const audio_file = req.files[0];
+  const buffer = audio_file.buffer;
+  buffer.name = audio_file.originalname;
 
-  const response = transcribe(req.body.file);
+  const response = transcribe(buffer);
 
   response
     .then(data => {

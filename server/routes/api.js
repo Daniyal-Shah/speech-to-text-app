@@ -8,7 +8,7 @@ const router = express.Router();
 const upload = multer();
 
 const configuration = new Configuration({
-  apiKey: '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',
+  apiKey: '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',
 });
 
 async function transcribe(buffer) {
@@ -33,7 +33,8 @@ async function transcribe(buffer) {
 }
 
 router.post('/', upload.any('file'), (req, res) => {
-  console.log('POST OPENAI==>', req.body);
+  console.log('POST OPENAI==>');
+  console.log(req.files);
 
   const audio_file = req.files[0];
   const buffer = audio_file.buffer;

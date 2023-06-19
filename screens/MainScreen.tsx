@@ -26,6 +26,8 @@ import * as RNFS from 'react-native-fs';
 import DocumentPicker from 'react-native-document-picker';
 import axios from 'axios';
 import {getTranslationAPI} from '../api/api';
+import {URL} from '../constants/endpoints';
+import {Blob, Buffer, File} from 'buffer';
 
 const MainScreen = () => {
   const [convertedTexts, setConvertedTexts] = React.useState<TextItemProps[]>(
@@ -49,18 +51,46 @@ const MainScreen = () => {
     SoundRecorder.stop().then(async function (result) {
       console.log('stopped recording, audio file saved at: ' + result.path);
 
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
-        allowMultiSelection: false,
-      });
+      var files = [
+        {
+          name: 'file',
+          filename: 'test',
+          filepath: result.path,
+          filetype: 'audio/mpeg',
+        },
+      ];
 
-      const data = await getTranslationAPI(res);
-      console.log(data);
+      RNFS.uploadFiles({
+        toUrl: URL,
+        files: files,
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+      })
+        .promise.then(response => {
+          if (response.statusCode == 200) {
+            console.log('FILES UPLOADED!');
+          } else {
+            console.log('SERVER ERROR');
+          }
+        })
+        .catch(err => {
+          if (err.description === 'cancelled') {
+            // cancelled by user
+          }
+          console.log(err);
+        });
 
       // RNFS.readFile(result.path, 'base64').then(data => {
+      //   Alert.alert(data);
       //   const binaryData = Buffer.from(data, 'base64');
+
+      //   // const file = new File([binaryData], 'test.mp3', {type: 'audio/mpeg'});
       //   const form = new FormData();
-      //   form.append('file', file);
+      //   form.append('file', binaryData);
+
+      //   getTranslationAPI(form);
       // });
     });
   };

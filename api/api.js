@@ -1,17 +1,14 @@
 /* eslint-disable prettier/prettier */
 import axios from 'axios';
+import {URL} from '../constants/endpoints';
 
 export const getTranslationAPI = async data => {
   try {
-    const response = await axios.post(
-      'http://192.168.0.11:4000/api/openai',
-      data,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+    const response = await axios.post(URL, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
-    );
+    });
 
     console.log('API RESPONSE ===>', response);
   } catch (error) {
